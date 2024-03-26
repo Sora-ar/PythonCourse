@@ -1,4 +1,5 @@
 import requests
+from collections import Counter
 
 headers = {
     "accept": "application/json",
@@ -13,6 +14,7 @@ class Films:
     def __init__(self, pages):
         self.data = []
         self.get_data(pages)
+        self.pairs = []
 
     # 1. Fetch the data from desired amount of pages
     def get_data(self, pages):
@@ -43,6 +45,25 @@ class Films:
     def get_unique_genres(self):
         return frozenset(genre for film in self.data for genre in film.get('genre_ids', []))
 
+    # 7. Delete all movies with user provided genre
+    def delete_movies(self):
+        num_genre = input('Delete (number of genre): ')
+        return list(filter(lambda film: num_genre not in film['genre_ids'], self.data))
+
+    # 8. Names of most popular genres with numbers of time the appear in the data
+    def get_most_popular_genres(self):
+        return dict(Counter(genre for film in self.data for genre in film['genre_ids']).most_common())
+
+    # 9. Collection of film titles  grouped in pairs by common genres (the groups should not allow inserts)
+    def get_titles_grouped(self):
+        for first_film in self.data:
+            for second_film in self.data:
+                if first_film['title'] != second_film['title'] and set(first_film['genre_ids']).intersection(second_film['genre_ids']):
+                    self.pairs = [(first_film['title'], second_film['title'])]
+                    return self.pairs
+
+    # 10. Return initial data and copy of initial data where first id in list of film genres was replaced with 22
+
 
 x = Films(3)
 
@@ -62,7 +83,11 @@ x = Films(3)
 # # 6
 # print(x.get_unique_genres())
 
-# 7
+# # 7
+# print(x.delete_movies())
 
+# # 8
+# print(x.get_most_popular_genres())
 
-# 8
+# # 9
+# print(x.get_titles_grouped())
