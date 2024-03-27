@@ -1,2 +1,2 @@
-new_list = [i for i in enumerate(list('adcd'))]
+new_list = [i for i in enumerate(list('abcd'))]
 print(new_list)
