@@ -3,6 +3,9 @@ import logging
 import csv
 import requests
 import os.path
+from datetime import datetime
+
+URL = "https://randomuser.me/api/?results=5000"
 
 
 def get_log(log_level):
@@ -17,6 +20,22 @@ def get_log(log_level):
     logger.addHandler(file_handler)
 
     return logger
+
+
+def args_parser():
+    parser = argparse.ArgumentParser(
+        usage='task2.py [-h] [--destination_folder path --file_name name --filter_by selected_filter --filter_value value --log_level selected_level]')
+    parser.add_argument('--destination_folder', metavar='DESTINATION_FOLDER',
+                        help="Path to a folder where output file is going to be placed", required=True)
+    parser.add_argument('--file_name', metavar='FILE', default='output',
+                        help="Filename for the output CSV file", required=True)
+    parser.add_argument('--filter_by', metavar='FILTER', choices=['gender', 'number'],
+                        help='Filter data by gender or number of rows')
+    parser.add_argument('--filter_value', metavar='VALUE', help='Value to filter data by')
+    parser.add_argument('--log_level', metavar='LOG', nargs='?', default='INFO',
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Log level')
+
+    return parser.parse_args()
 
 
 def get_user_data(url, destination_file):
@@ -49,26 +68,13 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        usage='task2.py [-h] [--destination_folder path --file_name name --filter_by selected_filter --filter_value value --log_level selected_level]')
-    parser.add_argument('--destination_folder', metavar='DESTINATION_FOLDER',
-                        help="Path to a folder where output file is going to be placed", required=True)
-    parser.add_argument('--file_name', metavar='FILE', default='output',
-                        help="Filename for the output CSV file", required=True)
-    parser.add_argument('--filter_by', metavar='FILTER', choices=['gender', 'number'],
-                        help='Filter data by gender or number of rows')
-    parser.add_argument('--filter_value', metavar='VALUE', help='Value to filter data by')
-    parser.add_argument('--log_level', metavar='LOG', nargs='?', default='INFO',
-                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Log level')
-
-    args = parser.parse_args()
+    args = args_parser()
 
     logger = get_log(args.log_level)
     logger.info("Starting data retrieval and CSV writing process")
 
-    url = "https://randomuser.me/api/?results=5000"
     destination_file = os.path.join(args.destination_folder, f"{args.file_name}.csv")
-    get_user_data(url, destination_file)
+    get_user_data(URL, destination_file)
 
     if args.filter_by and args.filter_value:
         filter_data(destination_file, destination_file, args.filter_by, args.filter_value)
