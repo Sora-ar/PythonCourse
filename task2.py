@@ -5,8 +5,9 @@ import requests
 import os.path
 from datetime import datetime
 import pytz  # work with timezone
+import json
 
-URL = "https://randomuser.me/api/?results=5000"
+URL = "https://randomuser.me/api/?results=5"
 CHANGE_FILE = 'new_change_data.csv'
 
 
@@ -84,39 +85,73 @@ def convert_date(date_str, date_format):
     return user_date.strftime(date_format)
 
 
-def change_and_add_content_into_csv(destination_file):
-    with open(destination_file, 'r', newline='', encoding='utf-8') as file, \
-            open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
+def change_and_add_content_into_csv(destination_file, logger):
+    with open(destination_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        fieldnames = reader.fieldnames + ['global_index', 'current_time']
+        rows = list(reader)
 
+    with open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
+        fieldnames = reader.fieldnames + ['global_index', 'current_time']
         writer = csv.DictWriter(new_file, fieldnames=fieldnames)
         writer.writeheader()
-
+    # with open(destination_file, 'r', newline='', encoding='utf-8') as file, \
+    #         open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
+    #     reader = csv.DictReader(file)
+    #     fieldnames = reader.fieldnames + ['global_index', 'current_time']
+    #
+    #     logger.info("Headers added successfully")
+    #
+    #     writer = csv.DictWriter(new_file, fieldnames=fieldnames)
+    #     writer.writeheader()
         for row in reader:
-            user_timezone = row.get('location.timezone')
-            if user_timezone:
-                return pytz.timezone(user_timezone)
+            print(type(row['name']), eval(row['name'])['title'])  #json.loads(row['name'].replace("'", '"')))
 
-        for i, row in enumerate(reader, start=1):
+        # for row in reader:
+        #     user_timezone = row.get('location.timezone')
+        #     if user_timezone:
+        #         return pytz.timezone(user_timezone)
+        rows = list(reader)
+        for i, row in enumerate(rows, start=1):
             # global_index (row number in csv file)
             row['global_index'] = i
-
-            # current_time (time of a user based on their timezone)
-            row['current_time'] = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
+            logger.info("global_index changed successfully")
 
             # change the content in the field name.title using following rule:
             # Mrs  missis; Ms miss; Mr mister; Madame mademoiselle;
             # other values should remain the same.
-            row['name.title'] = replacement_content(row['name.title'])
+            logger.info(f"Before replacement: {eval(row['name'])['title']}")
+            eval(row['name'])['title'] = replacement_content(eval(row['name'])['title'])
+            logger.info(f"After replacement: {eval(row['name'])['title']}")
+            logger.info("name.title changed successfully")
 
             # Convert dob.date to the format "month/day/year”
-            row['dob.date'] = convert_date(row['dob.date'], '%m/%d/%Y')
+            eval(row['dob'])['date'] = convert_date(eval(row['dob'])['date'], '%m/%d/%Y')
+            logger.info("dob.date changed successfully")
 
             # Convert register.date to the format "month-day-year, hours:minutes:second"
-            row['registered.date'] = convert_date(row['registered.date'], '%m-%d-%Y, %H:%M:%S')
+            eval(row['registered'])['date'] = convert_date(eval(row['registered'])['date'], '%m-%d-%Y, %H:%M:%S')
+            logger.info("registered.date changed successfully")
+
+            # current_time (time of a user based on their timezone)
+
+            # for row_r in reader:
+            #     user_timezone = row_r.get('location.timezone')
+            #     if user_timezone:
+            #         return pytz.timezone(user_timezone)
+            #
+            # row['current_time'] = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
+            # logger.info("current_time changed successfully")
+
+            # user_timezone_str = row.get('location.timezone')
+            # if user_timezone_str:
+            #     user_timezone = pytz.timezone(user_timezone_str)
+            #     current_time = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
+            #     row['current_time'] = current_time
+            # logger.info("current_time changed successfully")
 
             writer.writerow(row)
+
+        logger.info("Data changed successfully")
 
 
 def main():
@@ -135,12 +170,14 @@ def main():
     logger.info("Data retrieval and CSV writing process completed")
     logger.info("Started changing the csv file")
 
-    change_and_add_content_into_csv(destination_file)
+    change_and_add_content_into_csv(destination_file, logger)
 
-    logger.info("Changing the cc file was successful")
+    logger.info("Changing the csv file was successful")
 
 
 # Script that can be run from command line:
 # python task2.py --destination_folder C:\Users\Admin\Desktop\University\2_year\2st_semester\MultiparadigmProgrammingLanguages\homeworks --file_name filtered_data --filter_by gender --filter_value male --log_level DEBUG
 if __name__ == "__main__":
     main()
+
+# python task2.py --destination_folder . --file_name filtered_data --filter_by gender --filter_value male --log_level DEBUG
