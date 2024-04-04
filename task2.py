@@ -70,14 +70,17 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
         csv_writer.writerows(filtered_rows)
 
 
-def replacement_content(value):
-    replacements = {
-        'Mrs': 'missis',
-        'Ms': 'miss',
-        'Mr': 'mister',
-        'Madame': 'mademoiselle'
-    }
-    return replacements.get(value, value)
+def replacement_content(name_data):
+    match name_data['title']:
+        case 'Mr':
+            name_data['title'] = 'mister'
+        case 'Mrs':
+            name_data['title'] = 'missis'
+        case 'Ms':
+            name_data['title'] = 'miss'
+        case 'Madame':
+            name_data['title'] = 'mademoiselle'
+    return name_data['title']
 
 
 def convert_date(date_str, date_format):
@@ -91,26 +94,9 @@ def change_and_add_content_into_csv(destination_file, logger):
         rows = list(reader)
 
     with open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
-        fieldnames = reader.fieldnames + ['global_index', 'current_time']
-        writer = csv.DictWriter(new_file, fieldnames=fieldnames)
+        # fieldnames = reader.fieldnames + ['global_index', 'current_time']
+        writer = csv.DictWriter(new_file, fieldnames=reader.fieldnames + ['global_index', 'current_time'])
         writer.writeheader()
-    # with open(destination_file, 'r', newline='', encoding='utf-8') as file, \
-    #         open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
-    #     reader = csv.DictReader(file)
-    #     fieldnames = reader.fieldnames + ['global_index', 'current_time']
-    #
-    #     logger.info("Headers added successfully")
-    #
-    #     writer = csv.DictWriter(new_file, fieldnames=fieldnames)
-    #     writer.writeheader()
-        for row in reader:
-            print(type(row['name']), eval(row['name'])['title'])  #json.loads(row['name'].replace("'", '"')))
-
-        # for row in reader:
-        #     user_timezone = row.get('location.timezone')
-        #     if user_timezone:
-        #         return pytz.timezone(user_timezone)
-        rows = list(reader)
         for i, row in enumerate(rows, start=1):
             # global_index (row number in csv file)
             row['global_index'] = i
@@ -119,30 +105,37 @@ def change_and_add_content_into_csv(destination_file, logger):
             # change the content in the field name.title using following rule:
             # Mrs  missis; Ms miss; Mr mister; Madame mademoiselle;
             # other values should remain the same.
-            logger.info(f"Before replacement: {eval(row['name'])['title']}")
-            eval(row['name'])['title'] = replacement_content(eval(row['name'])['title'])
-            logger.info(f"After replacement: {eval(row['name'])['title']}")
+            name_data = json.loads(row['name'].replace("'", '"'))
+
+            logger.info(f"Before replacement: {name_data['title']}")
+
+            name_data['title'] = replacement_content(name_data)
+
+            logger.info(f"After replacement: {name_data['title']}")
+
+            row['name'] = json.dumps(name_data)
+
             logger.info("name.title changed successfully")
 
-            # Convert dob.date to the format "month/day/year”
-            eval(row['dob'])['date'] = convert_date(eval(row['dob'])['date'], '%m/%d/%Y')
-            logger.info("dob.date changed successfully")
+            # # Convert dob.date to the format "month/day/year”
+            # eval(row['dob'])['date'] = convert_date(eval(row['dob'])['date'], '%m/%d/%Y')
+            # logger.info("dob.date changed successfully")
+            #
+            # # Convert register.date to the format "month-day-year, hours:minutes:second"
+            # eval(row['registered'])['date'] = convert_date(eval(row['registered'])['date'], '%m-%d-%Y, %H:%M:%S')
+            # logger.info("registered.date changed successfully")
 
-            # Convert register.date to the format "month-day-year, hours:minutes:second"
-            eval(row['registered'])['date'] = convert_date(eval(row['registered'])['date'], '%m-%d-%Y, %H:%M:%S')
-            logger.info("registered.date changed successfully")
-
-            # current_time (time of a user based on their timezone)
-
+            # # current_time (time of a user based on their timezone)
             # for row_r in reader:
-            #     user_timezone = row_r.get('location.timezone')
+            #     user_timezone = json.loads(row_r['location'].replace("'", '"'))
             #     if user_timezone:
-            #         return pytz.timezone(user_timezone)
+            #         return pytz.timezone(user_timezone['timezone'])
             #
             # row['current_time'] = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
             # logger.info("current_time changed successfully")
 
-            # user_timezone_str = row.get('location.timezone')
+            # location_data = json.loads(row['location'].replace("'", '"'))
+            # user_timezone_str = location_data.get('timezone', '')
             # if user_timezone_str:
             #     user_timezone = pytz.timezone(user_timezone_str)
             #     current_time = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
