@@ -2,12 +2,12 @@ import argparse
 import logging
 import csv
 import requests
-import os.path
+import os
 from datetime import datetime
 import pytz  # work with timezone
-import json
 
-URL = "https://randomuser.me/api/?results=5"
+
+URL = "https://randomuser.me/api/?results=5&format=csv"
 CHANGE_FILE = 'new_change_data.csv'
 
 
@@ -43,14 +43,8 @@ def args_parser():
 
 def get_user_data(url, destination_file):
     response = requests.get(url)
-    if response.status_code == 200:
-        result = response.json()['results']
-        with open(destination_file, 'w', newline='', encoding='utf-8') as file:
-            csv_writer = csv.DictWriter(file, fieldnames=result[0].keys())
-            csv_writer.writeheader()
-            csv_writer.writerows(result)
-    else:
-        return None
+    with open(destination_file, 'w', encoding='utf-8')as f:
+        f.write(response.text)
 
 
 def filter_data(source_file, destination_file, filter_by, filter_value):
@@ -70,17 +64,17 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
         csv_writer.writerows(filtered_rows)
 
 
-def replacement_content(name_data):
-    match name_data['title']:
+def replacement_content(row):
+    match row['name.title']:
         case 'Mr':
-            name_data['title'] = 'mister'
+            row['name.title'] = 'mister'
         case 'Mrs':
-            name_data['title'] = 'missis'
+            row['name.title'] = 'missis'
         case 'Ms':
-            name_data['title'] = 'miss'
+            row['name.title'] = 'miss'
         case 'Madame':
-            name_data['title'] = 'mademoiselle'
-    return name_data['title']
+            row['name.title'] = 'mademoiselle'
+    return row['name.title']
 
 
 def convert_date(date_str, date_format):
@@ -94,8 +88,7 @@ def change_and_add_content_into_csv(destination_file, logger):
         rows = list(reader)
 
     with open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
-        # fieldnames = reader.fieldnames + ['global_index', 'current_time']
-        writer = csv.DictWriter(new_file, fieldnames=reader.fieldnames + ['global_index', 'current_time'])
+        writer = csv.DictWriter(new_file, fieldnames=list(rows[0].keys()) + ['current_time', 'global_index'])
         writer.writeheader()
         for i, row in enumerate(rows, start=1):
             # global_index (row number in csv file)
@@ -105,42 +98,24 @@ def change_and_add_content_into_csv(destination_file, logger):
             # change the content in the field name.title using following rule:
             # Mrs  missis; Ms miss; Mr mister; Madame mademoiselle;
             # other values should remain the same.
-            name_data = json.loads(row['name'].replace("'", '"'))
-
-            logger.info(f"Before replacement: {name_data['title']}")
-
-            name_data['title'] = replacement_content(name_data)
-
-            logger.info(f"After replacement: {name_data['title']}")
-
-            row['name'] = json.dumps(name_data)
-
+            row['name.title'] = replacement_content(row['name.title'])
             logger.info("name.title changed successfully")
 
-            # # Convert dob.date to the format "month/day/year”
-            # eval(row['dob'])['date'] = convert_date(eval(row['dob'])['date'], '%m/%d/%Y')
-            # logger.info("dob.date changed successfully")
-            #
-            # # Convert register.date to the format "month-day-year, hours:minutes:second"
-            # eval(row['registered'])['date'] = convert_date(eval(row['registered'])['date'], '%m-%d-%Y, %H:%M:%S')
-            # logger.info("registered.date changed successfully")
+            # Convert dob.date to the format "month/day/year”
+            row['dob.date'] = convert_date(row['dob.date'], '%m/%d/%Y')
+            logger.info("dob.date changed successfully")
 
-            # # current_time (time of a user based on their timezone)
-            # for row_r in reader:
-            #     user_timezone = json.loads(row_r['location'].replace("'", '"'))
-            #     if user_timezone:
-            #         return pytz.timezone(user_timezone['timezone'])
-            #
-            # row['current_time'] = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
-            # logger.info("current_time changed successfully")
+            # Convert register.date to the format "month-day-year, hours:minutes:second"
+            row['registered.date'] = convert_date(row['registered.date'], '%m-%d-%Y, %H:%M:%S')
+            logger.info("registered.date changed successfully")
 
-            # location_data = json.loads(row['location'].replace("'", '"'))
-            # user_timezone_str = location_data.get('timezone', '')
-            # if user_timezone_str:
-            #     user_timezone = pytz.timezone(user_timezone_str)
-            #     current_time = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
-            #     row['current_time'] = current_time
-            # logger.info("current_time changed successfully")
+            # current_time (time of a user based on their timezone)
+            user_timezone_str = row.get('location.timezone')
+            if user_timezone_str:
+                user_timezone = pytz.timezone(user_timezone_str)
+                current_time = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
+                row['current_time'] = current_time
+                logger.info("current_time changed successfully")
 
             writer.writerow(row)
 
@@ -149,28 +124,36 @@ def change_and_add_content_into_csv(destination_file, logger):
 
 def main():
     args = args_parser()
-
     logger = get_log(args.log_level)
-    logger.info("Starting data retrieval and CSV writing process")
 
+    logger.info("Starting data retrieval and CSV writing process")
     destination_file = os.path.join(args.destination_folder, f"{args.file_name}.csv")
     get_user_data(URL, destination_file)
 
     if args.filter_by and args.filter_value:
         filter_data(destination_file, destination_file, args.filter_by, args.filter_value)
         logger.info(f"Filtered data based on {args.filter_by} = {args.filter_value}")
-
     logger.info("Data retrieval and CSV writing process completed")
+
     logger.info("Started changing the csv file")
-
     change_and_add_content_into_csv(destination_file, logger)
-
     logger.info("Changing the csv file was successful")
+
+    logger.info("Checking if a path exists")
+    if not os.path.exists(args.destination_folder):
+        os.makedirs(args.destination_folder)
+        logger.info(f"Destination folder '{args.destination_folder}' created")
+
+    os.chdir(args.destination_folder)
+    logger.info(f"Changed working directory to '{args.destination_folder}'")
+
+    moving_file = f"{args.file_name}.csv"
+    new_destination_path = os.path.join(args.destination_folder, moving_file)
+    os.rename(moving_file, new_destination_path)
+    logger.info(f"File '{moving_file}' has been moved to the destination folder '{args.destination_folder}'")
 
 
 # Script that can be run from command line:
-# python task2.py --destination_folder C:\Users\Admin\Desktop\University\2_year\2st_semester\MultiparadigmProgrammingLanguages\homeworks --file_name filtered_data --filter_by gender --filter_value male --log_level DEBUG
+# python task2.py --destination_folder . --file_name filtered_data --filter_by gender --filter_value male --log_level DEBUG
 if __name__ == "__main__":
     main()
-
-# python task2.py --destination_folder . --file_name filtered_data --filter_by gender --filter_value male --log_level DEBUG
