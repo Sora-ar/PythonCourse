@@ -4,8 +4,10 @@ import csv
 import requests
 import os.path
 from datetime import datetime
+import pytz  # work with timezone
 
 URL = "https://randomuser.me/api/?results=5000"
+CHANGE_FILE = 'new_change_data.csv'
 
 
 def get_log(log_level):
@@ -67,6 +69,56 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
         csv_writer.writerows(filtered_rows)
 
 
+def replacement_content(value):
+    replacements = {
+        'Mrs': 'missis',
+        'Ms': 'miss',
+        'Mr': 'mister',
+        'Madame': 'mademoiselle'
+    }
+    return replacements.get(value, value)
+
+
+def convert_date(date_str, date_format):
+    user_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+    return user_date.strftime(date_format)
+
+
+def change_and_add_content_into_csv(destination_file):
+    with open(destination_file, 'r', newline='', encoding='utf-8') as file, \
+            open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
+        reader = csv.DictReader(file)
+        fieldnames = reader.fieldnames + ['global_index', 'current_time']
+
+        writer = csv.DictWriter(new_file, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for row in reader:
+            user_timezone = row.get('location.timezone')
+            if user_timezone:
+                return pytz.timezone(user_timezone)
+
+        for i, row in enumerate(reader, start=1):
+            # global_index (row number in csv file)
+            row['global_index'] = i
+
+            # current_time (time of a user based on their timezone)
+            row['current_time'] = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
+
+            # change the content in the field name.title using following rule:
+            # Mrs  missis; Ms miss; Mr mister; Madame mademoiselle;
+            # other values should remain the same.
+            row['name.title'] = replacement_content(row['name.title'])
+
+            # Convert dob.date to the format "month/day/year”
+            row['dob.date'] = convert_date(row['dob.date'], '%m/%d/%Y')
+
+            # Convert register.date to the format "month-day-year, hours:minutes:second"
+            row['registered.date'] = convert_date(row['registered.date'], '%m-%d-%Y, %H:%M:%S')
+
+            writer.writerow(row)
+
+
 def main():
     args = args_parser()
 
@@ -81,6 +133,11 @@ def main():
         logger.info(f"Filtered data based on {args.filter_by} = {args.filter_value}")
 
     logger.info("Data retrieval and CSV writing process completed")
+    logger.info("Started changing the csv file")
+
+    change_and_add_content_into_csv(destination_file)
+
+    logger.info("Changing the cc file was successful")
 
 
 # Script that can be run from command line:
