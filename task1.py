@@ -12,6 +12,8 @@ HEADERS = {
                      "FmMDAxMDU5NzQ4OSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW"
                      "9uIjoxfQ.lbpgyXlOXwrbY0mUmP-zQpNAMCw_h-oaudAJB6Cn5c8"
 }
+URL = 'https://api.themoviedb.org/3/discover/movie?include_adult=' \
+      'false&include_video=false&sort_by=popularity.desc&page={}'
 TITLE = 'title'
 POPULARITY = 'popularity'
 GENRE_IDS = 'genre_ids'
@@ -30,9 +32,7 @@ class Films:
     # 1. Fetch the data from desired amount of pages
     def get_data(self, pages):
         for i in range(1, pages + 1):
-            url = f'https://api.themoviedb.org/3/discover/movie?include_adult=' \
-                  f'false&include_video=false&sort_by=popularity.desc&page={i}'
-            response = requests.get(url=url, headers=HEADERS)
+            response = requests.get(url=URL.format(i), headers=HEADERS)
             self.data.extend(response.json()['results'])
 
     # 2. Give a user all data
