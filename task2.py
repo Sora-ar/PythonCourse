@@ -3,8 +3,7 @@ import logging
 import csv
 import requests
 import os
-from datetime import datetime
-import pytz  # work with timezone
+from datetime import datetime, timedelta
 
 
 URL = "https://randomuser.me/api/?results=5&format=csv"
@@ -93,29 +92,34 @@ def change_and_add_content_into_csv(destination_file, logger):
         for i, row in enumerate(rows, start=1):
             # global_index (row number in csv file)
             row['global_index'] = i
-            logger.info("global_index changed successfully")
 
             # change the content in the field name.title using following rule:
             # Mrs  missis; Ms miss; Mr mister; Madame mademoiselle;
             # other values should remain the same.
-            row['name.title'] = replacement_content(row['name.title'])
-            logger.info("name.title changed successfully")
+            # row['name.title'] = replacement_content(row['name.title'])match row['name.title']:
+            match row['name.title']:
+                case 'Mr':
+                    row['name.title'] = 'mister'
+                case 'Mrs':
+                    row['name.title'] = 'missis'
+                case 'Ms':
+                    row['name.title'] = 'miss'
+                case 'Madame':
+                    row['name.title'] = 'mademoiselle'
 
             # Convert dob.date to the format "month/day/year”
             row['dob.date'] = convert_date(row['dob.date'], '%m/%d/%Y')
-            logger.info("dob.date changed successfully")
 
             # Convert register.date to the format "month-day-year, hours:minutes:second"
             row['registered.date'] = convert_date(row['registered.date'], '%m-%d-%Y, %H:%M:%S')
-            logger.info("registered.date changed successfully")
 
             # current_time (time of a user based on their timezone)
-            user_timezone_str = row.get('location.timezone')
-            if user_timezone_str:
-                user_timezone = pytz.timezone(user_timezone_str)
-                current_time = datetime.now(user_timezone).strftime('%Y-%m-%d %H:%M:%S')
-                row['current_time'] = current_time
-                logger.info("current_time changed successfully")
+            print(row['location.timezone.offset'])
+            hours_offset = int(row['location.timezone.offset'].split(':')[0])
+            minutes_offset = int(row['location.timezone.offset'].split(':')[1])
+            offset = timedelta(hours=hours_offset, minutes=minutes_offset)
+            current_time = datetime.now() + offset
+            row['current_time'] = current_time.strftime('%Y-%m-%d %H:%M:%S')
 
             writer.writerow(row)
 
