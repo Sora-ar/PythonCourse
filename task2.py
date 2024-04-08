@@ -63,19 +63,6 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
         csv_writer.writerows(filtered_rows)
 
 
-def replacement_content(row):
-    match row['name.title']:
-        case 'Mr':
-            row['name.title'] = 'mister'
-        case 'Mrs':
-            row['name.title'] = 'missis'
-        case 'Ms':
-            row['name.title'] = 'miss'
-        case 'Madame':
-            row['name.title'] = 'mademoiselle'
-    return row['name.title']
-
-
 def convert_date(date_str, date_format):
     user_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
     return user_date.strftime(date_format)
@@ -96,7 +83,6 @@ def change_and_add_content_into_csv(destination_file, logger):
             # change the content in the field name.title using following rule:
             # Mrs  missis; Ms miss; Mr mister; Madame mademoiselle;
             # other values should remain the same.
-            # row['name.title'] = replacement_content(row['name.title'])match row['name.title']:
             match row['name.title']:
                 case 'Mr':
                     row['name.title'] = 'mister'
