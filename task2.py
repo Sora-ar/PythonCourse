@@ -183,6 +183,25 @@ def del_data_before_1960th(destination_folder, logger):
                 logger.info(f"Removed folder: {folder_path}")
 
 
+def get_full_folder_structure(destination_folder, level=0):
+    items = os.listdir(destination_folder)
+
+    items.sort()
+
+    for item in items:
+        item_path = os.path.join(destination_folder, item)
+        is_folder = os.path.isdir(item_path)
+        type_flag = "DIR" if is_folder else "FILE"
+        print('\t' * level + f"{item}: {type_flag}")
+
+        if is_folder:
+            get_full_folder_structure(item_path, level + 1)
+
+
+def archive_destination_folder(destination_folder):
+    shutil.make_archive(destination_folder, 'zip', destination_folder)
+
+
 def main():
     args = args_parser()
     logger = get_log(args.log_level)
@@ -225,6 +244,12 @@ def main():
     logger.info("Started removing folders")
     del_data_before_1960th(destination_folder, logger)
     logger.info("Removed successfully")
+
+    get_full_folder_structure(destination_folder)
+    logger.info("Structure formed successfully")
+
+    archive_destination_folder(destination_folder)
+    logger.info("Folder is archived")
 
 
 # Script that can be run from command line:
