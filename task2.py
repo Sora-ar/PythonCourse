@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from collections import Counter
 import shutil
 
-URL = "https://randomuser.me/api/?results=50&format=csv"
+URL = "https://randomuser.me/api/?results=5000&format=csv"
 CHANGE_FILE = 'new_change_data.csv'
 NEW_DATA_STRUCTURE_FILE = 'new_data_structure.csv'
 
