@@ -3,7 +3,6 @@ import logging
 import csv
 import requests
 import os
-# from pprint import pprint
 from datetime import datetime, timedelta
 from collections import Counter
 import shutil
