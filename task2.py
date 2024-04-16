@@ -14,7 +14,7 @@ NEW_DATA_STRUCTURE_FILE = 'new_data_structure.csv'
 
 def get_log(log_level):
     logger = logging.getLogger("user_data")
-    logger.setLevel(log_level)
+    logger.setLevel(log_level) #?????????????
 
     file_handler = logging.FileHandler('app.log')
     file_handler.setLevel(log_level)
