@@ -7,14 +7,14 @@ from datetime import datetime, timedelta
 from collections import Counter
 import shutil
 
-URL = "https://randomuser.me/api/?results=5000&format=csv"
+URL = "https://randomuser.me/api/?results=50&format=csv"
 CHANGE_FILE = 'new_change_data.csv'
 NEW_DATA_STRUCTURE_FILE = 'new_data_structure.csv'
 
 
 def get_log(log_level):
     logger = logging.getLogger("user_data")
-    logger.setLevel(log_level) #?????????????
+    # logger.setLevel(log_level) #?????????????
 
     file_handler = logging.FileHandler('app.log')
     file_handler.setLevel(log_level)
@@ -65,9 +65,34 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
         csv_writer.writerows(filtered_rows)
 
 
+def get_current_time(row):
+    hours_offset = int(row['location.timezone.offset'].split(':')[0])
+    minutes_offset = int(row['location.timezone.offset'].split(':')[1])
+    offset = timedelta(hours=hours_offset, minutes=minutes_offset)
+    current_time = datetime.now() + offset
+    row['current_time'] = current_time.strftime('%Y-%m-%d %H:%M:%S')
+
+    return row['current_time']
+
+
 def convert_date(date_str, date_format):
     user_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+
     return user_date.strftime(date_format)
+
+
+def replacement_prefix(title):
+    match title:
+        case 'Mr':
+            return 'mister'
+        case 'Mrs':
+            return 'missis'
+        case 'Ms':
+            return 'miss'
+        case 'Madame':
+            return 'mademoiselle'
+
+    return title
 
 
 def change_and_add_content_into_csv(destination_file, logger):
@@ -79,34 +104,11 @@ def change_and_add_content_into_csv(destination_file, logger):
         writer = csv.DictWriter(new_file, fieldnames=list(rows[0].keys()) + ['current_time', 'global_index'])
         writer.writeheader()
         for i, row in enumerate(rows, start=1):
-            # global_index (row number in csv file)
             row['global_index'] = i
-
-            # change the content in the field name.title using following rule:
-            # Mrs  missis; Ms miss; Mr mister; Madame mademoiselle;
-            # other values should remain the same.
-            match row['name.title']:
-                case 'Mr':
-                    row['name.title'] = 'mister'
-                case 'Mrs':
-                    row['name.title'] = 'missis'
-                case 'Ms':
-                    row['name.title'] = 'miss'
-                case 'Madame':
-                    row['name.title'] = 'mademoiselle'
-
-            # Convert dob.date to the format "month/day/year”
+            row['name.title'] = replacement_prefix(row['name.title'])
             row['dob.date'] = convert_date(row['dob.date'], '%m/%d/%Y')
-
-            # Convert register.date to the format "month-day-year, hours:minutes:second"
             row['registered.date'] = convert_date(row['registered.date'], '%m-%d-%Y, %H:%M:%S')
-
-            # current_time (time of a user based on their timezone)
-            hours_offset = int(row['location.timezone.offset'].split(':')[0])
-            minutes_offset = int(row['location.timezone.offset'].split(':')[1])
-            offset = timedelta(hours=hours_offset, minutes=minutes_offset)
-            current_time = datetime.now() + offset
-            row['current_time'] = current_time.strftime('%Y-%m-%d %H:%M:%S')
+            row['current_time'] = get_current_time(row)
 
             writer.writerow(row)
 
@@ -127,17 +129,45 @@ def create_new_data_structure(destination_file, logger):
         decade = f"{user_year[2:3]}0-th"
 
         if decade not in grouped_user_data:
-            grouped_user_data[decade] = {}
+            grouped_user_data.setdefault(decade, {})
 
         if user_country not in grouped_user_data[decade]:
-            grouped_user_data[decade][user_country] = []
+            grouped_user_data[decade].setdefault(user_country, [])
 
-        grouped_user_data[decade].setdefault(user_country, []).append(user)
+        grouped_user_data[decade][user_country].append(user)
+
+        # if decade not in grouped_user_data:
+        #     grouped_user_data[decade] = {}
+        #
+        # if user_country not in grouped_user_data[decade]:
+        #     grouped_user_data[decade][user_country] = []
+        #
+        # grouped_user_data[decade].setdefault(user_country, []).append(user)
 
     # pprint(grouped_user_data)
     logger.info("Data append successfully")
 
     return grouped_user_data, data
+
+
+def generation_filename(grouped_user_data, decade, country):
+    max_age = max(user['dob.age'] for user in grouped_user_data[decade][country])
+
+    total_registered_years = sum(int(user['registered.age']) for user in grouped_user_data[decade][country])
+    num_users = len(grouped_user_data[decade][country])
+    avr_registered_years = total_registered_years / num_users
+
+    all_id_names = [user['id.name'] for user in grouped_user_data[decade][country]]
+    id_name_counts = Counter(all_id_names)
+    popular_id = id_name_counts.most_common(1)[0][0]
+
+    return max_age, avr_registered_years, popular_id
+
+
+# def create_dirs(path, folder, purpose):
+#     os.path.join(path, purpose)
+
+#     os.makedirs(folder, exist_ok=True)
 
 
 def create_sub_folders(destination_folder, grouped_user_data, user_data, logger):
@@ -149,17 +179,9 @@ def create_sub_folders(destination_folder, grouped_user_data, user_data, logger)
             country_folder = os.path.join(decade_folder, country)
             os.makedirs(country_folder, exist_ok=True)
 
-            max_age = max(user['dob.age'] for user in grouped_user_data[decade][country])
+            filename_item = generation_filename(grouped_user_data, decade, country)
 
-            total_registered_years = sum(int(user['registered.age']) for user in grouped_user_data[decade][country])
-            num_users = len(grouped_user_data[decade][country])
-            avr_registered_years = total_registered_years / num_users
-
-            all_id_names = [user['id.name'] for user in grouped_user_data[decade][country]]
-            id_name_counts = Counter(all_id_names)
-            popular_id = id_name_counts.most_common(1)[0][0]
-
-            file_name = f"max_age_{max_age}_avg_registered_{avr_registered_years}_ popular_id_{popular_id}.csv"
+            file_name = f"max_age_{filename_item[0]}_avg_registered_{filename_item[1]}_ popular_id_{filename_item[2]}.csv"
             file_path = os.path.join(country_folder, file_name)
 
             with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
