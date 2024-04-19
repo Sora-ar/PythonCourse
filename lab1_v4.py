@@ -4,59 +4,28 @@ N, M = (5, 5)
 
 
 def sum_max_items():
-    print('')
-    print('part 2')
-    max_sum = arr[0][-1]
-    print('Start max sum = ', max_sum)
-    print('')
-
-    for i in range(1, N):
-        l_side = 0
-        r_side = 0
-        for j in range(M - i):
-            l_side += arr[i + j][j]
-            r_side += arr[j][i + j]
-        if l_side > max_sum:
-            max_sum = l_side
-        if r_side > max_sum:
-            max_sum = r_side
-        print('Left side ', l_side)
-        print('Right side ', r_side)
-
-    print('')
-    print('Max sum: ', max_sum)
+    max_sum = max(arr[i + j][j] + arr[j][i + j] for i in range(1, N) for j in range(M - i))
+    print('Max sum:', max(max_sum, arr[0][-1]))
 
 
 def multiplication_positive_num():
-    print('part 1')
-
-    for i in range(N):
+    for i, row in enumerate(arr):
         counter = 1
-        stop = True
-        for j in range(M):
-            counter *= arr[i][j]
-            if arr[i][j] < 0:
-                stop = False
+        for element in row:
+            if element < 0:
+                print(i + 1, ' row: there is a negative element')
                 break
-        if stop:
-            print('Multiplication of positive number of ', i + 1, ' row: ', counter)
+            counter *= element
         else:
-            print(i + 1, ' row: there is a negative element')
+            print('Multiplication of positive numbers of ', i + 1, ' row: ', counter)
 
 
 def print_array(lst):
-    for i in range(len(lst)):
-        for j in range(len(lst[i])):
-            print(f"{lst[i][j]} ", end=' ')
-        print()
-
-    print('')
+    [print(' '.join(map(str, row))) for row in lst]
 
 
 def create_array():
-    return [
-        [random.randint(0, 9) for _ in range(M)] for _ in range(N)
-    ]
+    return [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
 
 
 arr = create_array()

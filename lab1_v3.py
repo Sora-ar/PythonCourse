@@ -5,59 +5,38 @@ M = 6
 
 
 def length_finding():
-    print('part 2')
-    longest_lenght = 0
-    row_len = 0
-    elemen_long = 0
+    longest_length = 0
     row_longest = 0
+    element_long = None
 
-    for i in range(0, N):
-        count_length = 0
-        for j in range(0, M - 1):
-            if arr[i][j] == arr[i][j + 1]:
+    for i, row in enumerate(arr):
+        count_length = 1
+        for j in range(1, len(row)):
+            if row[j] == row[j - 1]:
                 count_length += 1
-                elemen = arr[i][j]
+                if count_length > longest_length:
+                    longest_length = count_length
+                    element_long = row[j]
+                    row_longest = i + 1
             else:
-                elemen = arr[i][j + 1]
                 count_length = 1
-            if count_length > longest_lenght:
-                longest_lenght = count_length
-                elemen_long = elemen
-                row_longest = i + 1
-        row_len += 1
 
-    if longest_lenght > 1:
-        print(row_longest, ' row that contains the longest series of identical elements: ', elemen_long)
-        print('long ', longest_lenght)
+    if longest_length > 1:
+        print(row_longest, ' row that contains the longest series of identical elements: ', element_long)
+        print('long ', longest_length)
 
 
 def zero_search():
-    print('part 1')
-    counter = 0
-
-    for i in range(0, N):
-        for j in range(0, M):
-            if arr[i][j] == 0:
-                counter += 1
-                break
-
+    counter = sum(1 for i in range(N) for j in range(M) if arr[i][j] == 0)
     print('Number of rows with zero element: ', counter)
-    print('')
 
 
 def print_array(lst):
-    for i in range(len(lst)):
-        for j in range(len(lst[i])):
-            print(f"{lst[i][j]} ", end=' ')
-        print()
-
-    print('')
+    [print(' '.join(map(str, row))) for row in lst]
 
 
 def create_array():
-    return [
-        [random.randint(0, 9) for _ in range(M)] for _ in range(N)
-    ]
+    return [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
 
 
 arr = create_array()
