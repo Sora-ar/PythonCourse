@@ -21,7 +21,7 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS users(
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
                 surname TEXT NOT NULL,
-                birth_day INTEGER,
+                birth_day TEXT CHECK (birth_day LIKE '%.%.%'),
                 accounts TEXT NOT NULL CHECK (accounts LIKE '%,%'),
                 UNIQUE (name, surname)
                 )''')
