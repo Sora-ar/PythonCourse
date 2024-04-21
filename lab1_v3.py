@@ -1,10 +1,15 @@
 import random
 
-N = 4
-M = 6
+N, M = 4, 6
 
 
-def length_finding():
+def create_and_print_array():
+    arr = [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
+    print_array(arr)
+    return arr
+
+
+def length_finding(arr):
     longest_length = 0
     row_longest = 0
     element_long = None
@@ -22,24 +27,24 @@ def length_finding():
                 count_length = 1
 
     if longest_length > 1:
-        print(row_longest, ' row that contains the longest series of identical elements: ', element_long)
-        print('long ', longest_length)
+        print(f'{row_longest} row that contains the longest series of identical elements: {element_long}',
+              f'\nLong {longest_length}')
 
 
-def zero_search():
+def zero_search(arr):
     counter = sum(1 for i in range(N) for j in range(M) if arr[i][j] == 0)
-    print('Number of rows with zero element: ', counter)
+    print(f'Number of rows with zero element: {counter}')
 
 
 def print_array(lst):
     [print(' '.join(map(str, row))) for row in lst]
 
 
-def create_array():
-    return [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
+def main():
+    arr = create_and_print_array()
+    zero_search(arr)
+    length_finding(arr)
 
 
-arr = create_array()
-print_array(arr)
-zero_search()
-length_finding()
+if __name__ == "__main__":
+    main()

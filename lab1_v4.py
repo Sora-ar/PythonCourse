@@ -1,14 +1,20 @@
 import random
 
-N, M = (5, 5)
+N, M = 5, 5
 
 
-def sum_max_items():
+def create_and_print_array():
+    arr = [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
+    print_array(arr)
+    return arr
+
+
+def sum_max_items(arr):
     max_sum = max(arr[i + j][j] + arr[j][i + j] for i in range(1, N) for j in range(M - i))
-    print('Max sum:', max(max_sum, arr[0][-1]))
+    print(f'Max sum: {max(max_sum, arr[0][-1])}')
 
 
-def multiplication_positive_num():
+def multiplication_positive_num(arr):
     for i, row in enumerate(arr):
         counter = 1
         for element in row:
@@ -24,11 +30,11 @@ def print_array(lst):
     [print(' '.join(map(str, row))) for row in lst]
 
 
-def create_array():
-    return [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
+def main():
+    arr = create_and_print_array()
+    multiplication_positive_num(arr)
+    sum_max_items(arr)
 
 
-arr = create_array()
-print_array(arr)
-multiplication_positive_num()
-sum_max_items()
+if __name__ == "__main__":
+    main()
