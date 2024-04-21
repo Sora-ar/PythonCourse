@@ -10,15 +10,25 @@ import shutil
 URL = "https://randomuser.me/api/?results=50&format=csv"
 CHANGE_FILE = 'new_change_data.csv'
 NEW_DATA_STRUCTURE_FILE = 'new_data_structure.csv'
+LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+GENDER = 'gender'
+TIMEZONE_OFFSET = 'location.timezone.offset'
+CURRENT_TIME = 'current_time'
+GLOBAL_INDEX = 'global_index'
+TITLE = 'name.title'
+DOB_DATE = 'dob.date'
+REGISTERED_DATE = 'registered.date'
+COUNTRY = 'location.country'
+AGE = 'registered.age'
+NAME = 'id.name'
 
 
 def get_log(log_level):
     logger = logging.getLogger("user_data")
-    # logger.setLevel(log_level) #?????????????
 
     file_handler = logging.FileHandler('app.log')
     file_handler.setLevel(log_level)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(LOG_FORMAT)
     file_handler.setFormatter(formatter)
 
     logger.addHandler(file_handler)
@@ -54,7 +64,7 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
     with open(source_file, 'r', newline='', encoding='utf-8') as file:
         csv_reader = csv.DictReader(file)
         for row in csv_reader:
-            if filter_by == 'gender' and row['gender'] == filter_value:
+            if filter_by == 'gender' and row[GENDER] == filter_value:
                 filtered_rows.append(row)
             elif filter_by == 'number' and csv_reader.line_num <= int(filter_value) + 1:
                 filtered_rows.append(row)
@@ -66,13 +76,13 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
 
 
 def get_current_time(row):
-    hours_offset = int(row['location.timezone.offset'].split(':')[0])
-    minutes_offset = int(row['location.timezone.offset'].split(':')[1])
+    hours_offset = int(row[TIMEZONE_OFFSET].split(':')[0])
+    minutes_offset = int(row[TIMEZONE_OFFSET].split(':')[1])
     offset = timedelta(hours=hours_offset, minutes=minutes_offset)
     current_time = datetime.now() + offset
-    row['current_time'] = current_time.strftime('%Y-%m-%d %H:%M:%S')
+    row[CURRENT_TIME] = current_time.strftime('%Y-%m-%d %H:%M:%S')
 
-    return row['current_time']
+    return row[CURRENT_TIME]
 
 
 def convert_date(date_str, date_format):
@@ -101,14 +111,14 @@ def change_and_add_content_into_csv(destination_file, logger):
         rows = list(reader)
 
     with open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
-        writer = csv.DictWriter(new_file, fieldnames=list(rows[0].keys()) + ['current_time', 'global_index'])
+        writer = csv.DictWriter(new_file, fieldnames=list(rows[0].keys()) + [CURRENT_TIME, GLOBAL_INDEX])
         writer.writeheader()
         for i, row in enumerate(rows, start=1):
-            row['global_index'] = i
-            row['name.title'] = replacement_prefix(row['name.title'])
-            row['dob.date'] = convert_date(row['dob.date'], '%m/%d/%Y')
-            row['registered.date'] = convert_date(row['registered.date'], '%m-%d-%Y, %H:%M:%S')
-            row['current_time'] = get_current_time(row)
+            row[GLOBAL_INDEX] = i
+            row[TITLE] = replacement_prefix(row[TITLE])
+            row[DOB_DATE] = convert_date(row[DOB_DATE], '%m/%d/%Y')
+            row[REGISTERED_DATE] = convert_date(row[REGISTERED_DATE], '%m-%d-%Y, %H:%M:%S')
+            row[CURRENT_TIME] = get_current_time(row)
 
             writer.writerow(row)
 
@@ -124,8 +134,8 @@ def create_new_data_structure(destination_file, logger):
 
     grouped_user_data = {}
     for user in data:
-        user_year = user['dob.date'][:4]
-        user_country = user['location.country']
+        user_year = user[DOB_DATE][:4]
+        user_country = user[COUNTRY]
         decade = f"{user_year[2:3]}0-th"
 
         if decade not in grouped_user_data:
@@ -151,13 +161,13 @@ def create_new_data_structure(destination_file, logger):
 
 
 def generation_filename(grouped_user_data, decade, country):
-    max_age = max(user['dob.age'] for user in grouped_user_data[decade][country])
+    max_age = max(user[DOB_DATE] for user in grouped_user_data[decade][country])
 
-    total_registered_years = sum(int(user['registered.age']) for user in grouped_user_data[decade][country])
+    total_registered_years = sum(int(user[AGE]) for user in grouped_user_data[decade][country])
     num_users = len(grouped_user_data[decade][country])
     avr_registered_years = total_registered_years / num_users
 
-    all_id_names = [user['id.name'] for user in grouped_user_data[decade][country]]
+    all_id_names = [user[NAME] for user in grouped_user_data[decade][country]]
     id_name_counts = Counter(all_id_names)
     popular_id = id_name_counts.most_common(1)[0][0]
 
