@@ -14,15 +14,19 @@ HEADERS = {
 }
 URL = 'https://api.themoviedb.org/3/discover/movie?include_adult=' \
       'false&include_video=false&sort_by=popularity.desc&page={}'
+FIELDS = ['Title', 'Popularity', 'Score', 'Last day in cinema']
 TITLE = 'title'
 POPULARITY = 'popularity'
 GENRE_IDS = 'genre_ids'
 VOTE_AVERAGE = 'vote_average'
+OVERVIEW = 'overview'
+RELEASE_DATE = 'release_date'
+SCORE = 'Score'
+DATA_FORMAT = '%Y-%m-%d'
+FILE_WITH_FILMS = 'film_file.csv'
 
 
 class Films:
-    FIELDS = ['Title', 'Popularity', 'Score', 'Last day in cinema']
-
     def __init__(self, pages):
         self.data = []
         self.get_data(pages)
@@ -48,17 +52,15 @@ class Films:
         return max(self.data, key=lambda a: a[POPULARITY])[TITLE]
 
     # 5. Names of titles which has in description key words which a user put as parameters
-    def get_title_by_key_words(self):
-        keywords = input("Find: ").split()
-        return [film[TITLE] for film in self.data if any(keyword in film['overview'] for keyword in keywords)]
+    def get_title_by_key_words(self, keywords):
+        return [film[TITLE] for film in self.data if any(keyword in film[OVERVIEW] for keyword in keywords)]
 
     # 6. Unique collection of present genres (the collection should not allow inserts)
     def get_unique_genres(self):
         return frozenset(genre for film in self.data for genre in film.get(GENRE_IDS, []))
 
     # 7. Delete all movies with user provided genre
-    def delete_movies(self):
-        num_genre = input('Delete (number of genre): ')
+    def delete_movies(self, num_genre):
         return list(filter(lambda film: num_genre not in film[GENRE_IDS], self.data))
 
     # 8. Names of most popular genres with numbers of time the appear in the data
@@ -67,11 +69,9 @@ class Films:
 
     # 9. Collection of film titles  grouped in pairs by common genres (the groups should not allow inserts)
     def get_titles_grouped(self):
-        self.pairs = [(first_film[TITLE], second_film[TITLE]) for
-                      first_film in self.data for second_film in \
-                      self.data if first_film[TITLE] != second_film[TITLE] and \
-                      set(first_film[GENRE_IDS]).intersection(second_film[GENRE_IDS])]
-        return self.pairs
+        return [(first_film[TITLE], second_film[TITLE]) for first_film in self.data for second_film in \
+                self.data if first_film[TITLE] != second_film[TITLE] and \
+                set(first_film[GENRE_IDS]).intersection(second_film[GENRE_IDS])]
 
     # 10. Return initial data and copy of initial data where first id in list of film genres was replaced with 22
     def get_copy_data_with_new_id(self):
@@ -92,18 +92,18 @@ class Films:
                 'Title': film[TITLE],
                 'Popularity': round(film[POPULARITY], 1),
                 'Score': int(film[VOTE_AVERAGE]),
-                'Last day in cinema': (datetime.strptime(film['release_date'], '%Y-%m-%d') +
-                                       timedelta(weeks=8, days=4)).strftime('%Y-%m-%d')
+                'Last day in cinema': (datetime.strptime(film[RELEASE_DATE], DATA_FORMAT) +
+                                       timedelta(weeks=8, days=4)).strftime(DATA_FORMAT)
             }
             for film in self.data
         ]
-        self.collection.sort(key=lambda f: (f['Score'], f['Popularity']))
+        self.collection.sort(key=lambda f: (f[SCORE], f['Popularity']))
         return self.collection
 
     # 12. Write information from previous step to a csv file using path provided by user
     def write_data_in_csv(self):
-        with open('film_file.csv', mode='w', newline='') as csv_file:
-            writer = csv.DictWriter(csv_file, self.FIELDS)
+        with open(FILE_WITH_FILMS, mode='w', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, FIELDS)
             writer.writeheader()
             writer.writerows(self.collection)
 
@@ -120,13 +120,15 @@ pprint.pprint(x.get_all_data())
 # pprint.pprint(x.get_most_popular_title())
 
 # # 5
-# pprint.pprint(x.get_title_by_key_words())
+# keywords = input("Find: ").split()
+# pprint.pprint(x.get_title_by_key_words(keywords))
 
 # # 6
 # pprint.pprint(x.get_unique_genres())
 
 # # 7
-# pprint.pprint(x.delete_movies())
+# num_genre = input('Delete (number of genre): ')
+# pprint.pprint(x.delete_movies(num_genre))
 
 # # 8
 # pprint.pprint(x.get_most_popular_genres())
