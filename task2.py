@@ -9,6 +9,7 @@ import shutil
 
 URL = 'https://randomuser.me/api/?results=50&format=csv'
 CHANGE_FILE = 'new_change_data.csv'
+LOG_FILE = 'app.log'
 NEW_DATA_STRUCTURE_FILE = 'new_data_structure.csv'
 LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 GENDER = 'gender'
@@ -27,7 +28,7 @@ NAME = 'id.name'
 def get_log(log_level):
     logger = logging.getLogger('user_data')
 
-    file_handler = logging.FileHandler('app.log')
+    file_handler = logging.FileHandler(LOG_FILE)
     file_handler.setLevel(log_level)
     formatter = logging.Formatter(LOG_FORMAT)
     file_handler.setFormatter(formatter)
@@ -103,7 +104,7 @@ def filter_by_number(source_file, destination_file, filter_value):
 
 
 def filter_data(source_file, destination_file, filter_by, filter_value):
-    if filter_by == 'gender':
+    if filter_by == GENDER:
         filter_by_gender(source_file, destination_file, filter_value)
     else:
         filter_by_number(source_file, destination_file, filter_value)
@@ -174,7 +175,6 @@ def create_new_data_structure(destination_file, logger):
 
         grouped_user_data[decade][user_country].append(user)
 
-    # pprint(grouped_user_data)
     logger.info('Data append successfully')
 
     return grouped_user_data, data
