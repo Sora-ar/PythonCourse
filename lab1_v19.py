@@ -22,7 +22,7 @@ def sum_non_negativ_rows(arr):
 
 
 def print_array(lst):
-    [print(' '.join(map(str, row))) for row in lst]
+    print('\n'.join([' '.join(map(str, row)) for row in lst]))
 
 
 def main():

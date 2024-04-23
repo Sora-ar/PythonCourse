@@ -17,7 +17,7 @@ def sum_max_items(arr):
 def multiplication_positive_num(arr):
     for i, row in enumerate(arr):
         counter = 1
-        for element in row:
+        for element in row: # apply in row + reduce
             if element < 0:
                 print(i + 1, ' row: there is a negative element')
                 break
