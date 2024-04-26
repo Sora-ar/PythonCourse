@@ -111,8 +111,7 @@ def filter_data(source_file, destination_file, filter_by, filter_value):
 
 
 def get_current_time(row):
-    hours_offset = int(row[TIMEZONE_OFFSET].split(':')[0])
-    minutes_offset = int(row[TIMEZONE_OFFSET].split(':')[1])
+    hours_offset, minutes_offset = map(int, row[TIMEZONE_OFFSET].split(':'))
     offset = timedelta(hours=hours_offset, minutes=minutes_offset)
     current_time = datetime.now() + offset
     row[CURRENT_TIME] = current_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -246,7 +245,7 @@ def get_full_folder_structure(destination_folder, level=0):
         item_path = os.path.join(destination_folder, item)
         is_folder = os.path.isdir(item_path)
         type_flag = 'DIR' if is_folder else 'FILE'
-        print('\t' * level + f"{item}: {type_flag}")
+        print('\t' * level + f'{item}: {type_flag}')
 
         if is_folder:
             get_full_folder_structure(item_path, level + 1)
