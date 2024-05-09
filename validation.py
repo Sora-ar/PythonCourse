@@ -62,7 +62,7 @@ def validate_account_number(account_number):
     if not account_number.startswith('ID--'):
         raise ValueError("Invalid format! Account number must start with 'ID--'.")
 
-    pattern = re.compile(r'^ID--[a-zA-Z]{1,3}-\d+-[a-zA-Z]{1,3}-\d+$')
+    pattern = re.compile(r'^ID--[a-zA-Z]\d-[a-zA-Z]-\d{6}-[a-zA-Z]\d$')
     if not pattern.match(account_number):
         raise ValueError("Broken ID! Account number does not match the desired pattern.")
 
