@@ -6,23 +6,7 @@ import os
 from datetime import datetime, timedelta
 from collections import Counter
 import shutil
-
-URL = 'https://randomuser.me/api/?results=50&format=csv'
-CHANGE_FILE = 'new_change_data.csv'
-LOG_FILE = 'app.log'
-NEW_DATA_STRUCTURE_FILE = 'new_data_structure.csv'
-LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
-GENDER = 'gender'
-TIMEZONE_OFFSET = 'location.timezone.offset'
-CURRENT_TIME = 'current_time'
-GLOBAL_INDEX = 'global_index'
-TITLE = 'name.title'
-DOB_DATE = 'dob.date'
-DOB_AGE = 'dob.age'
-REGISTERED_DATE = 'registered.date'
-COUNTRY = 'location.country'
-AGE = 'registered.age'
-NAME = 'id.name'
+from constants import *
 
 
 def get_log(log_level):
@@ -41,28 +25,18 @@ def get_log(log_level):
 def args_parser():
     parser = argparse.ArgumentParser(
         usage='task2.py [-h] [--destination_folder path --file_name name '
-              '--filter_by selected_filter --filter_value value --log_level selected_level]')
-
-    # usage='task2.py [-h] [--destination_folder path --file_name name '
-    #           '(--filter_by_gender selected_filter / --filter_by_number num) '
-    #           '--filter_value value --log_level selected_level]')
+              '(--filter_by_gender selected_filter / --filter_by_number num) '
+              '--filter_value value --log_level selected_level]')
     parser.add_argument('--destination_folder', metavar='DESTINATION_FOLDER',
                         help='Path to a folder where output file is going to be placed', required=True)
 
     parser.add_argument('--file_name', metavar='FILE', default='output',
                         help='Filename for the output CSV file', required=True)
 
-    # exclusive_group = parser.add_mutually_exclusive_group(required=True)
-    # exclusive_group.add_argument('--filter_by_gender', metavar='GENDER', help='Filter data by gender')
-    # exclusive_group.add_argument('--filter_by_number', metavar='NUMBER', help='Filter data by number of rows')
+    exclusive_group = parser.add_mutually_exclusive_group(required=True)
+    exclusive_group.add_argument('--filter_by_gender', metavar='GENDER', help='Filter data by gender')
+    exclusive_group.add_argument('--filter_by_number', metavar='NUMBER', help='Filter data by number of rows')
 
-    # filter_group = parser.add_argument_group('Filter options')
-    # filter_group.add_argument('--filter_by', metavar='FILTER', choices=['gender', 'number'],
-    #                           help='Filter data by gender or number of rows')
-    # filter_group.add_argument('--filter_value', metavar='VALUE', help='Value to filter data by')
-
-    parser.add_argument('--filter_by', metavar='FILTER', choices=['gender', 'number'],
-                        help='Filter data by gender or number of rows')
     parser.add_argument('--filter_value', metavar='VALUE', help='Value to filter data by')
     parser.add_argument('--log_level', metavar='LOG', nargs='?', default='INFO',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Log level')
@@ -104,7 +78,7 @@ def filter_by_number(source_file, destination_file, filter_value):
 
 
 def filter_data(source_file, destination_file, filter_by, filter_value):
-    if filter_by == GENDER:
+    if filter_by == 'filter_by_gender':
         filter_by_gender(source_file, destination_file, filter_value)
     else:
         filter_by_number(source_file, destination_file, filter_value)
@@ -114,13 +88,15 @@ def get_current_time(row):
     hours_offset, minutes_offset = map(int, row[TIMEZONE_OFFSET].split(':'))
     offset = timedelta(hours=hours_offset, minutes=minutes_offset)
     current_time = datetime.now() + offset
-    row[CURRENT_TIME] = current_time.strftime('%Y-%m-%d %H:%M:%S')
+    row[CURRENT_TIME] = current_time.strftime('{data} {time}'.format(data=CURRENT_TIME_DATA_FORMAT,
+                                                                     time=TIME_FORMAT))
 
     return row[CURRENT_TIME]
 
 
 def convert_date(date_str, date_format):
-    user_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+    user_date = datetime.strptime(date_str, '{data}T{time}.%fZ'.format(data=CURRENT_TIME_DATA_FORMAT,
+                                                                       time=TIME_FORMAT))
 
     return user_date.strftime(date_format)
 
@@ -139,7 +115,7 @@ def replacement_prefix(title):
     return title
 
 
-def change_and_add_content_into_csv(destination_file, logger):
+def change_content_into_csv(destination_file, logger):
     rows = read_from_file(destination_file)
 
     with open(CHANGE_FILE, 'w', newline='', encoding='utf-8') as new_file:
@@ -148,8 +124,9 @@ def change_and_add_content_into_csv(destination_file, logger):
         for i, row in enumerate(rows, start=1):
             row[GLOBAL_INDEX] = i
             row[TITLE] = replacement_prefix(row[TITLE])
-            row[DOB_DATE] = convert_date(row[DOB_DATE], '%m/%d/%Y')
-            row[REGISTERED_DATE] = convert_date(row[REGISTERED_DATE], '%m-%d-%Y, %H:%M:%S')
+            row[DOB_DATE] = convert_date(row[DOB_DATE], DATA_FORMAT)
+            row[REGISTERED_DATE] = convert_date(row[REGISTERED_DATE],
+                                                '{data}, {time}'.format(data=DATA_FORMAT, time=TIME_FORMAT))
             row[CURRENT_TIME] = get_current_time(row)
 
             writer.writerow(row)
@@ -166,11 +143,9 @@ def create_new_data_structure(destination_file, logger):
         user_country = user[COUNTRY]
         decade = f'{user_year[2:3]}0-th'
 
-        if decade not in grouped_user_data:
-            grouped_user_data.setdefault(decade, {})
+        grouped_user_data.setdefault(decade, {})
 
-        if user_country not in grouped_user_data[decade]:
-            grouped_user_data[decade].setdefault(user_country, [])
+        grouped_user_data[decade].setdefault(user_country, [])
 
         grouped_user_data[decade][user_country].append(user)
 
@@ -179,7 +154,7 @@ def create_new_data_structure(destination_file, logger):
     return grouped_user_data, data
 
 
-def generation_filename(grouped_user_data, decade, country):
+def generate_filename(grouped_user_data, decade, country):
     max_age = max(user[DOB_AGE] for user in grouped_user_data[decade][country])
 
     total_registered_years = sum(int(user[AGE]) for user in grouped_user_data[decade][country])
@@ -190,7 +165,9 @@ def generation_filename(grouped_user_data, decade, country):
     id_name_counts = Counter(all_id_names)
     popular_id = id_name_counts.most_common(1)[0][0]
 
-    return max_age, avr_registered_years, popular_id
+    file_name = f'max_age_{max_age}_avg_registered_{avr_registered_years}_ popular_id_{popular_id}.csv'
+
+    return file_name
 
 
 def create_dirs(path, purpose):
@@ -216,9 +193,7 @@ def create_sub_folders(destination_folder, grouped_user_data, user_data, logger)
         for country in grouped_user_data[decade].keys():
             country_folder = create_dirs(decade_folder, country)
 
-            filename_item = generation_filename(grouped_user_data, decade, country)
-
-            file_name = f'max_age_{filename_item[0]}_avg_registered_{filename_item[1]}_ popular_id_{filename_item[2]}.csv'
+            file_name = generate_filename(grouped_user_data, decade, country)
             file_path = os.path.join(country_folder, file_name)
 
             file_entry_for_folders(file_path, user_data, grouped_user_data, decade, country)
@@ -265,13 +240,13 @@ def main():
     get_user_data(URL, destination_file)
 
     if args.filter_by and args.filter_value:
-        filter_data(destination_file, destination_file, args.filter_by, args.filter_value)
+        filter_data(destination_file, destination_file, args.filter_by_gender or args.filter_by_number, args.filter_value)
 
-        # logger.info(f'Filtered data based on {args.filter_by} = {args.filter_value}')
+        logger.info(f'Filtered data based on {args.filter_by_gender or args.filter_by_number} = {args.filter_value}')
     logger.info('Data retrieval and CSV writing process completed')
 
     logger.info('Started changing the csv file')
-    change_and_add_content_into_csv(destination_file, logger)
+    change_content_into_csv(destination_file, logger)
     logger.info('Changing the csv file was successful')
 
     logger.info('Checking if a path exists')
