@@ -79,6 +79,76 @@ def add_account_into_db(cursor, accounts):
 
 
 @conn_db
+def update_user(cursor, user_id, new_name, new_surname, new_birth_day=None, new_accounts=None):
+    """
+    Update user information in the database.
+
+    :param cursor: Database cursor.
+    :param user_id: ID of the user to be updated.
+    :param new_name: New name of the user.
+    :param new_surname: New surname of the user.
+    :param new_birth_day: New birthday of the user (optional).
+    :param new_accounts: New accounts of the user (optional).
+    :return: None
+    """
+    try:
+        cursor.execute("""
+            UPDATE users 
+            SET name=?, surname=?, birth_day=?, accounts=? 
+            WHERE id=?
+        """, (new_name, new_surname, new_birth_day, new_accounts, user_id))
+        logger.info(f'User information updated successfully.')
+    except sqlite3.Error as e:
+        logger.error(f"Error updating user information: {e}")
+
+
+@conn_db
+def update_bank(cursor, bank_id, new_name):
+    """
+    Update bank information in the database.
+
+    :param cursor: Database cursor.
+    :param bank_id: ID of the bank to be updated.
+    :param new_name: New name of the bank.
+    :return: None
+    """
+    try:
+        cursor.execute("""
+            UPDATE banks 
+            SET name=? 
+            WHERE id=?
+        """, (new_name, bank_id))
+        logger.info(f'Bank information updated successfully.')
+    except sqlite3.Error as e:
+        logger.error(f"Error updating bank information: {e}")
+
+
+@conn_db
+def update_account(cursor, account_id, new_type, new_number, new_currency, new_amount, new_status):
+    """
+    Update account information in the database.
+
+    :param cursor: Database cursor.
+    :param account_id: ID of the account to be updated.
+    :param new_type: New type of the account.
+    :param new_number: New number of the account.
+    :param new_currency: New currency of the account.
+    :param new_amount: New amount of the account.
+    :param new_status: New status of the account.
+    :return: None
+    """
+    try:
+        cursor.execute("""
+            UPDATE accounts
+            SET type=?, account_number=?, currency=?, amount=?, status=?
+            WHERE id=?
+        """, (new_type, new_number, new_currency, new_amount, new_status, account_id))
+        logger.info(f'Account information updated successfully.')
+    except sqlite3.Error as e:
+        logger.error(f"Error updating account information: {e}")
+
+
+@conn_db
 def delete_user(cursor, user_id):
     """
     Deletes a specific user from the database.

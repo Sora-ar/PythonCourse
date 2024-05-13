@@ -5,19 +5,6 @@ from constants import logger
 from work_with_db import *
 
 
-# def parse_user_full_name(user):
-#     """
-#     Splits the full username into separate parts: first name and last name.
-#
-#     :param user: a string containing the user's full name
-#     :return: a tuple of two elements: first name and last name
-#     """
-#     full_name = user['user_full_name']
-#     name, surname = full_name.split()
-#     logger.info(f'Full name "{full_name}" successfully split into: name "{name}" and surname "{surname}".')
-#     return name, surname
-
-
 def add_user(users):
     """
     Adds user information to the database.
@@ -69,12 +56,6 @@ def add_data_from_csv(file_path):
                 add_account(row)
             else:
                 logger.error(f'Unknown data type in CSV file "{file_path}". Cannot add data.')
-
-
-#
-# @conn_db
-# def update_user(cursor):
-
 
 #
 # @conn_db
