@@ -24,11 +24,10 @@ def test_read_text_from_file_valid(mock_f, obj):
 
 @patch('builtins.open', return_value='Error: File not found.', side_effect=FileNotFoundError('Error: File not found.'))
 def test_read_text_from_file_invalid(mock_f, obj):
-    with pytest.raises(FileNotFoundError):
-        actual = obj.read_text_from_file()
-        expected = 'Error: File not found.'
+    actual = obj.read_text_from_file()
+    expected = 'Error: File not found.'
 
-        assert actual == expected
+    assert actual == expected
 
 
 @patch.object(FileTextManipulator, 'read_text_from_file', return_value='😊')
