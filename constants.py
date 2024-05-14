@@ -1,5 +1,5 @@
 URL = 'https://randomuser.me/api/?results=50&format=csv'
-CHANGE_FILE = 'new_change_data.csv'
+# CHANGE_FILE = 'new_change_data.csv'
 LOG_FILE = 'app.log'
 LOG_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
 NEW_DATA_STRUCTURE_FILE = 'new_data_structure.csv'
