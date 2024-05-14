@@ -1,12 +1,6 @@
-import random
+from work_with_array import create_and_print_array
 
 N, M = 4, 6
-
-
-def create_and_print_array():
-    arr = [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
-    print_array(arr)
-    return arr
 
 
 def length_finding(arr):
@@ -36,12 +30,8 @@ def zero_search(arr):
     print(f'Number of rows with zero element: {counter}')
 
 
-def print_array(lst):
-    [print(' '.join(map(str, row))) for row in lst]
-
-
 def main():
-    arr = create_and_print_array()
+    arr = create_and_print_array(N, M)
     zero_search(arr)
     length_finding(arr)
 

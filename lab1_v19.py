@@ -1,12 +1,6 @@
-import random
+from work_with_array import create_and_print_array
 
 N, M = 5, 5
-
-
-def create_and_print_array():
-    arr = [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
-    print_array(arr)
-    return arr
 
 
 def sum_min_items(arr):
@@ -21,12 +15,8 @@ def sum_non_negativ_rows(arr):
               row_sum if all(element >= 0 for element in row) else '{} row: there is a negative element'.format(i + 1))
 
 
-def print_array(lst):
-    print('\n'.join([' '.join(map(str, row)) for row in lst]))
-
-
 def main():
-    arr = create_and_print_array()
+    arr = create_and_print_array(N, M)
     sum_non_negativ_rows(arr)
     sum_min_items(arr)
 

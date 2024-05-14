@@ -1,12 +1,7 @@
-import random
+from work_with_array import create_and_print_array
+from functools import reduce
 
 N, M = 5, 5
-
-
-def create_and_print_array():
-    arr = [[random.randint(0, 9) for _ in range(M)] for _ in range(N)]
-    print_array(arr)
-    return arr
 
 
 def sum_max_items(arr):
@@ -16,22 +11,17 @@ def sum_max_items(arr):
 
 def multiplication_positive_num(arr):
     for i, row in enumerate(arr):
-        counter = 1
-        for element in row: # apply in row + reduce
+        counter = reduce(lambda x, y: x * y, row, 1)
+        for element in row:
             if element < 0:
                 print(i + 1, ' row: there is a negative element')
                 break
-            counter *= element
         else:
             print('Multiplication of positive numbers of ', i + 1, ' row: ', counter)
 
 
-def print_array(lst):
-    [print(' '.join(map(str, row))) for row in lst]
-
-
 def main():
-    arr = create_and_print_array()
+    arr = create_and_print_array(N, M)
     multiplication_positive_num(arr)
     sum_max_items(arr)
 
