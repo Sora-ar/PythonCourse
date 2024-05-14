@@ -1,29 +1,15 @@
 import requests
+from itertools import chain
 from collections import Counter
 from copy import deepcopy
 from datetime import datetime, timedelta
 import csv
 import pprint
+import os
+# from dotenv import load_dotenv, find_dotenv
+from consts import *
 
-HEADERS = {
-    'accept': 'application/json',
-    'Authorization': "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzMTI3NGFmYTRlNT"
-                     "UyMjRjYzRlN2Q0NmNlMTNkOTZjOSIsInN1YiI6IjVkNmZhMWZmNzdjMD"
-                     "FmMDAxMDU5NzQ4OSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW"
-                     "9uIjoxfQ.lbpgyXlOXwrbY0mUmP-zQpNAMCw_h-oaudAJB6Cn5c8"
-}
-URL = 'https://api.themoviedb.org/3/discover/movie?include_adult=' \
-      'false&include_video=false&sort_by=popularity.desc&page={}'
-FIELDS = ['Title', 'Popularity', 'Score', 'Last day in cinema']
-TITLE = 'title'
-POPULARITY = 'popularity'
-GENRE_IDS = 'genre_ids'
-VOTE_AVERAGE = 'vote_average'
-OVERVIEW = 'overview'
-RELEASE_DATE = 'release_date'
-SCORE = 'Score'
-DATA_FORMAT = '%Y-%m-%d'
-FILE_WITH_FILMS = 'film_file.csv'
+# load_dotenv(find_dotenv())
 
 
 class Films:
@@ -35,10 +21,13 @@ class Films:
 
     # 1. Fetch the data from desired amount of pages
     def get_data(self, pages):
-        # selfcomprehenision & flatten (chain.from_sequence)
-        for i in range(1, pages + 1):
-            response = requests.get(url=URL.format(i), headers=HEADERS)
-            self.data.extend(response.json()['results'])
+        results = [requests.get(url=URL.format(i), headers=os.getenv('HEADERS')).json()['results'] for i in range(1, pages + 1)]
+        self.data.extend(chain.from_iterable(results))
+
+        # # self comprehenision & flatten (chain.from_sequence)
+        # for i in range(1, pages + 1):
+        #     response = requests.get(url=URL.format(i), headers=HEADERS)
+        #     self.data.extend(response.json()['results'])
 
     # 2. Give a user all data
     def get_all_data(self):
@@ -52,7 +41,7 @@ class Films:
     def get_most_popular_title(self):
         return max(self.data, key=lambda a: a[POPULARITY])[TITLE]
 
-    # 5. Names of titles which has in description key words which a user put as parameters
+    # 5. Names of titles which has in description keywords which a user put as parameters
     def get_title_by_key_words(self, keywords):
         return [film[TITLE] for film in self.data if any(keyword in film[OVERVIEW] for keyword in keywords)]
 
@@ -64,7 +53,7 @@ class Films:
     def delete_movies(self, num_genre):
         return list(filter(lambda film: num_genre not in film[GENRE_IDS], self.data))
 
-    # 8. Names of most popular genres with numbers of time the appear in the data
+    # 8. Names of most popular genres with numbers of time appear in the data
     def get_most_popular_genres(self):
         return dict(Counter(genre for film in self.data for genre in film[GENRE_IDS]).most_common())
 
