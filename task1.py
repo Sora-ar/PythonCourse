@@ -5,11 +5,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 import csv
 import pprint
-import os
-# from dotenv import load_dotenv, find_dotenv
 from consts import *
-
-# load_dotenv(find_dotenv())
 
 
 class Films:
@@ -21,8 +17,8 @@ class Films:
 
     # 1. Fetch the data from desired amount of pages
     def get_data(self, pages):
-        results = [requests.get(url=URL.format(i), headers=os.getenv('HEADERS')).json()['results'] for i in range(1, pages + 1)]
-        self.data.extend(chain.from_iterable(results))
+        results = [requests.get(url=URL.format(i), headers=HEADERS).json()['results'] for i in range(1, pages + 1)]
+        self.data = list(chain.from_iterable(results))
 
         # # self comprehenision & flatten (chain.from_sequence)
         # for i in range(1, pages + 1):
