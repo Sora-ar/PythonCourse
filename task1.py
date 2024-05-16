@@ -20,11 +20,6 @@ class Films:
         results = [requests.get(url=URL.format(i), headers=HEADERS).json()['results'] for i in range(1, pages + 1)]
         self.data = list(chain.from_iterable(results))
 
-        # # self comprehenision & flatten (chain.from_sequence)
-        # for i in range(1, pages + 1):
-        #     response = requests.get(url=URL.format(i), headers=HEADERS)
-        #     self.data.extend(response.json()['results'])
-
     # 2. Give a user all data
     def get_all_data(self):
         return self.data
