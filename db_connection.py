@@ -1,4 +1,5 @@
 import sqlite3
+from functools import wraps
 
 
 def conn_db(func):
@@ -10,12 +11,12 @@ def conn_db(func):
             passes the cursor and other arguments to an internal function,
             commits the changes, and closes the connection
     """
+    @wraps(func)
     def wrapper(*args, **kwargs):
         conn = sqlite3.connect('task3_db.db')
         cursor = conn.cursor()
-        func(cursor, *args, **kwargs)
+        x = func(cursor, *args, **kwargs)
         conn.commit()
-        cursor.close()
         conn.close()
-
+        return x
     return wrapper

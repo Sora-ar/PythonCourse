@@ -24,6 +24,34 @@ def delete_data_fr_db(cursor):
         logger.error(f"Error deleting data from the database: {e}")
 
 
+# @conn_db
+# def add_data_into_db(cursor, table_name, data_list):
+#     """
+#     Adds data into the specified table of the database.
+#
+#     :param cursor: SQLite cursor object for executing SQL queries.
+#     :param table_name: Name of the table to which data will be added.
+#     :param data_list: List of dictionaries containing data to be added.
+#     :return: None
+#     """
+#     if isinstance(data_list, dict):
+#         data_list = [data_list]
+#
+#     for data in data_list:
+#         values = tuple(data[key] for key in data.keys())
+#         placeholders = ', '.join(['?' for _ in range(len(data))])
+#
+#         columns = ', '.join(data.keys())
+#         print(columns)
+#         query = f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})'
+#
+#         try:
+#             cursor.execute(query, values)
+#             logger.info(f'{table_name.capitalize()} information added successfully.')
+#         except sqlite3.Error as e:
+#             logger.error(f"Error adding {table_name} information: {e}")
+
+
 @conn_db
 def add_user_into_db(cursor, users):
     """
@@ -78,6 +106,28 @@ def add_account_into_db(cursor, accounts):
                                                         account['user_id']))
 
 
+# @conn_db
+# def update_data(cursor, table_name, **kwargs):
+#     """
+#     Update data in the specified table of the database.
+#
+#     :param cursor: Database cursor.
+#     :param table_name: Name of the table to be updated.
+#     :param kwargs: Key-value pairs where keys represent column names and values represent new values.
+#     :return: None
+#     """
+#     try:
+#         columns = ', '.join([f"{column} = ?" for column in kwargs.keys()])
+#         values = tuple(kwargs.values())
+#         query = f"UPDATE {table_name} SET {columns} WHERE id=?"
+#
+#         cursor.execute(query, (*values, kwargs['id']))
+#
+#         logger.info(f'{table_name.capitalize()} information updated successfully.')
+#     except sqlite3.Error as e:
+#         logger.error(f"Error updating {table_name} information: {e}")
+
+
 @conn_db
 def update_user(cursor, user_id, new_name, new_surname, new_birth_day=None, new_accounts=None):
     """
@@ -92,11 +142,8 @@ def update_user(cursor, user_id, new_name, new_surname, new_birth_day=None, new_
     :return: None
     """
     try:
-        cursor.execute("""
-            UPDATE users 
-            SET name=?, surname=?, birth_day=?, accounts=? 
-            WHERE id=?
-        """, (new_name, new_surname, new_birth_day, new_accounts, user_id))
+        cursor.execute('UPDATE users ounSET name=?, surname=?, birth_day=?, accounts=? WHERE id=?',
+                       (new_name, new_surname, new_birth_day, new_accounts, user_id))
         logger.info(f'User information updated successfully.')
     except sqlite3.Error as e:
         logger.error(f"Error updating user information: {e}")
@@ -113,11 +160,7 @@ def update_bank(cursor, bank_id, new_name):
     :return: None
     """
     try:
-        cursor.execute("""
-            UPDATE banks 
-            SET name=? 
-            WHERE id=?
-        """, (new_name, bank_id))
+        cursor.execute('UPDATE banks SET name=? WHERE id=?', (new_name, bank_id))
         logger.info(f'Bank information updated successfully.')
     except sqlite3.Error as e:
         logger.error(f"Error updating bank information: {e}")
@@ -138,11 +181,8 @@ def update_account(cursor, account_id, new_type, new_number, new_currency, new_a
     :return: None
     """
     try:
-        cursor.execute("""
-            UPDATE accounts
-            SET type=?, account_number=?, currency=?, amount=?, status=?
-            WHERE id=?
-        """, (new_type, new_number, new_currency, new_amount, new_status, account_id))
+        cursor.execute('UPDATE accounts SET type=?, account_number=?, currency=?, amount=?, status=? WHERE id=?',
+                       (new_type, new_number, new_currency, new_amount, new_status, account_id))
         logger.info(f'Account information updated successfully.')
     except sqlite3.Error as e:
         logger.error(f"Error updating account information: {e}")
