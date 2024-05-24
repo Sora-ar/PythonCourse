@@ -1,20 +1,24 @@
+import requests
 from datetime import datetime, timedelta
-from constants import (TIMEZONE_OFFSET, CURRENT_TIME, CURRENT_TIME_DATA_FORMAT, TIME_FORMAT,
-                       GLOBAL_INDEX, TITLE, DATA_FORMAT, DOB_DATE, REGISTERED_DATE)
+from constants import (TIMEZONE_OFFSET, CURRENT_TIME, API_DATE_FORMAT, TIME_FORMAT,
+                       GLOBAL_INDEX, TITLE, DATE_FORMAT, DOB_DATE, REGISTERED_DATE)
+
+
+def get_user_data(url, destination_file):
+    response = requests.get(url)
+    with open(destination_file, 'w', encoding='utf-8') as f:
+        f.write(response.text)
 
 
 def get_current_time(row):
     hours_offset, minutes_offset = map(int, row[TIMEZONE_OFFSET].split(':'))
     offset = timedelta(hours=hours_offset, minutes=minutes_offset)
     current_time = datetime.now() + offset
-    row[CURRENT_TIME] = current_time.strftime('{data} {time}'.format(data=CURRENT_TIME_DATA_FORMAT,
-                                                                     time=TIME_FORMAT))
-    return row[CURRENT_TIME]
+    return current_time.strftime(f'{API_DATE_FORMAT} {TIME_FORMAT}')
 
 
 def convert_date(date_str, date_format):
-    user_date = datetime.strptime(date_str, '{data}T{time}.%fZ'.format(data=CURRENT_TIME_DATA_FORMAT,
-                                                                       time=TIME_FORMAT))
+    user_date = datetime.strptime(date_str, f'{API_DATE_FORMAT}T{TIME_FORMAT}.%fZ')
     return user_date.strftime(date_format)
 
 
@@ -36,9 +40,8 @@ def change_content(filtered_data, logger):
         for i, row in enumerate(filtered_data, start=1):
             row[GLOBAL_INDEX] = i
             row[TITLE] = replacement_prefix(row[TITLE])
-            row[DOB_DATE] = convert_date(row[DOB_DATE], DATA_FORMAT)
-            row[REGISTERED_DATE] = convert_date(row[REGISTERED_DATE],
-                                                '{data}, {time}'.format(data=DATA_FORMAT, time=TIME_FORMAT))
+            row[DOB_DATE] = convert_date(row[DOB_DATE], DATE_FORMAT)
+            row[REGISTERED_DATE] = convert_date(row[REGISTERED_DATE], f'{DATE_FORMAT}, {TIME_FORMAT}')
             row[CURRENT_TIME] = get_current_time(row)
 
         logger.info('Data changed successfully')

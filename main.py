@@ -1,18 +1,11 @@
 import os
-import requests
 from constants import *
 from log import get_log
 from args_parser import args_parser
 from filter_data import filter_data
-from change_data import change_content
+from change_data import change_content, get_user_data
 from work_with_folders import (create_new_data_structure, create_sub_folders, del_data_before_1960th,
                                get_full_folder_structure, archive_destination_folder)
-
-
-def get_user_data(url, destination_file):
-    response = requests.get(url)
-    with open(destination_file, 'w', encoding='utf-8') as f:
-        f.write(response.text)
 
 
 def main():
@@ -24,10 +17,9 @@ def main():
     destination_file = os.path.join(destination_folder, f'{args.file_name}.csv')
     get_user_data(URL, destination_file)
 
-    if args.filter_by_gender or args.filter_by_number and args.filter_value:
-        filtered_data = filter_data(destination_file, args.filter_by_gender or args.filter_by_number, args.filter_value)
+    filtered_data = filter_data(destination_file, args.filter_by_gender or args.filter_by_number)
 
-        logger.info(f'Filtered data based on {args.filter_by_gender or args.filter_by_number} = {args.filter_value}')
+    logger.info(f'Filtered data based on "{args.filter_by_gender or args.filter_by_number}"')
     logger.info('Data retrieval and CSV writing process completed')
 
     logger.info('Started changing the csv file')
@@ -59,7 +51,7 @@ def main():
     del_data_before_1960th(destination_folder, logger)
     logger.info('Removed successfully')
 
-    get_full_folder_structure(destination_folder)
+    get_full_folder_structure(destination_folder, logger)
     logger.info('Structure formed successfully')
 
     archive_destination_folder(destination_folder)
@@ -67,7 +59,7 @@ def main():
 
 
 # Script that can be run from command line:
-# python main.py --destination_folder . --file_name begin_data --filter_by_gender filter_by_gender --filter_value male --log_level DEBUG
-# python main.py --destination_folder C:\Users\Admin\Desktop\University\2_year\2st_semester\MultiparadigmProgrammingLanguages\homeworks\ --file_name begin_data --filter_by_gender filter_by_gender --filter_value male --log_level DEBUG
+# python main.py --destination_folder . --file_name begin_data --filter_by_gender male --log_level DEBUG
+# python main.py --destination_folder C:\Users\Admin\Desktop\University\2_year\2st_semester\MultiparadigmProgrammingLanguages\homeworks\ --file_name begin_data --filter_by_gender male --log_level DEBUG
 if __name__ == '__main__':
     main()

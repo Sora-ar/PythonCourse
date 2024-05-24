@@ -4,8 +4,8 @@ import argparse
 def args_parser():
     parser = argparse.ArgumentParser(
         usage='main.py [-h] [--destination_folder path --file_name name '
-              '(--filter_by_gender selected_filter / --filter_by_number num) '
-              '--filter_value value --log_level selected_level]')
+              '(--filter_by_gender male/female / --filter_by_number num) '
+              '--log_level selected_level]')
     parser.add_argument('--destination_folder', metavar='DESTINATION_FOLDER',
                         help='Path to a folder where output file is going to be placed', required=True)
 
@@ -16,7 +16,6 @@ def args_parser():
     exclusive_group.add_argument('--filter_by_gender', metavar='GENDER', help='Filter data by gender')
     exclusive_group.add_argument('--filter_by_number', metavar='NUMBER', help='Filter data by number of rows')
 
-    parser.add_argument('--filter_value', metavar='VALUE', help='Value to filter data by')
     parser.add_argument('--log_level', metavar='LOG', nargs='?', default='INFO',
                         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], help='Log level')
 

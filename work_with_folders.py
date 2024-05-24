@@ -13,14 +13,9 @@ def create_new_data_structure(filtered_data, logger):
         user_country = user[COUNTRY]
         decade = f'{user_year[2]}0-th'
 
-        grouped_user_data.setdefault(decade, {})
-
-        grouped_user_data[decade].setdefault(user_country, [])
-
-        grouped_user_data[decade][user_country].append(user)
+        grouped_user_data.setdefault(decade, {}).setdefault(user_country, []).append(user)
 
     logger.info('Data append successfully')
-
     return grouped_user_data, filtered_data
 
 
@@ -35,37 +30,31 @@ def generate_filename(grouped_user_data, decade, country):
     id_name_counts = Counter(all_id_names)
     popular_id = id_name_counts.most_common(1)[0][0]
 
-    file_name = f'max_age_{max_age}_avg_registered_{avr_registered_years}_ popular_id_{popular_id}.csv'
-
-    return file_name
+    return f'max_age_{max_age}_avg_registered_{avr_registered_years}_popular_id_{popular_id}.csv'
 
 
-def create_dirs(path, purpose):
-    folder = os.path.join(path, purpose)
+def create_dirs(path, destination):
+    folder = os.path.join(path, destination)
     os.makedirs(folder, exist_ok=True)
-
     return folder
 
 
 def file_entry_for_folders(file_path, user_data, grouped_user_data, decade, country):
     with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=user_data[0].keys())
-
         writer.writeheader()
-        for row in grouped_user_data[decade][country]:
-            writer.writerow(row)
+        writer.writerows(list(grouped_user_data[decade][country]))
 
 
 def create_sub_folders(destination_folder, grouped_user_data, user_data, logger):
-    for decade in grouped_user_data.keys():
+    for decade in grouped_user_data:
         decade_folder = create_dirs(destination_folder, decade)
 
-        for country in grouped_user_data[decade].keys():
+        for country in grouped_user_data[decade]:
             country_folder = create_dirs(decade_folder, country)
 
             file_name = generate_filename(grouped_user_data, decade, country)
             file_path = os.path.join(country_folder, file_name)
-
             file_entry_for_folders(file_path, user_data, grouped_user_data, decade, country)
 
     logger.info('All folders created')
@@ -81,7 +70,7 @@ def del_data_before_1960th(destination_folder, logger):
                 logger.info(f'Removed folder: {folder_path}')
 
 
-def get_full_folder_structure(destination_folder, level=0):
+def get_full_folder_structure(destination_folder, logger, level=0):
     items = os.listdir(destination_folder)
 
     items.sort()
@@ -90,10 +79,10 @@ def get_full_folder_structure(destination_folder, level=0):
         item_path = os.path.join(destination_folder, item)
         is_folder = os.path.isdir(item_path)
         type_flag = 'DIR' if is_folder else 'FILE'
-        print('\t' * level + f'{item}: {type_flag}')
+        logger.info('\t' * level + f'{item}: {type_flag}')
 
         if is_folder:
-            get_full_folder_structure(item_path, level + 1)
+            get_full_folder_structure(item_path, logger, level + 1)
 
 
 def archive_destination_folder(destination_folder):
