@@ -103,7 +103,7 @@ def add_bank_into_db(cursor, banks):
         banks = [banks]
 
     for bank in banks:
-        cursor.execute('INSERT INTO banks (name) VALUES (?)', (bank['bank_name']))
+        cursor.execute('INSERT INTO banks (name, id) VALUES (?)', (bank['bank_name'], bank['bank_id']))
 
 
 @conn_db

@@ -56,6 +56,7 @@ def add_data_from_csv(file_path):
         reader = csv.DictReader(file)
         for row in reader:
             if 'user_full_name' in row:
+                print(row)
                 add_user(row)
             if 'bank_name' in row:
                 add_bank(row)
