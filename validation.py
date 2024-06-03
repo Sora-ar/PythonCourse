@@ -1,21 +1,27 @@
+"""
+Module for validating user and account information.
+
+This module contains functions for validating user full names, account types,
+account statuses, and account numbers.
+"""
 import re
 
 
 def validate_user_full_name(full_name):
     """
     Validates and splits the full name into separate parts: first name and last name.
+
     Filters out all non-alphabetic characters.
 
-    :param full_name: a string containing the user's full name
-    :return: a tuple of two elements: first name and last name
+    :param full_name: a string containing the user's full name.
+    :return: a tuple of two elements: first name and last name.
     """
     filtered_name = re.sub(r'[^a-zA-Z\s]', '', full_name)
     parts = filtered_name.split()
 
     if len(parts) == 2:
         return tuple(parts)
-    else:
-        raise ValueError("Invalid full name format. Please provide both first name and last name separated by space.")
+    raise ValueError("Invalid full name format. Please provide both first name and last name separated by space.")
 
 
 def validate_account_type(account_type):
@@ -54,7 +60,8 @@ def validate_account_number(account_number):
     if not isinstance(account_number, str):
         raise ValueError("Account number must be a string!")
 
-    account_number = account_number.replace('#', '-').replace('%', '-').replace('_', '-').replace('?', '-').replace('&', '-')
+    account_number = account_number.replace('#', '-').replace('%', '-').replace('_', '-').replace('?', '-').replace('&',
+                                                                                                                    '-')
 
     if len(account_number) != 18:
         raise ValueError("Account number must be 18 characters long!")

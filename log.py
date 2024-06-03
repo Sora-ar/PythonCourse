@@ -1,3 +1,8 @@
+"""
+Module for creating a logger.
+
+This module provides a function `get_log()` to create and configure a logger for writing messages to a log file.
+"""
 import logging
 
 LOG_FORMAT = '%(name)s - %(asctime)s - %(levelname)s - %(message)s'
@@ -5,9 +10,9 @@ LOG_FORMAT = '%(name)s - %(asctime)s - %(levelname)s - %(message)s'
 
 def get_log():
     """
-    Creates and returns a logger to write messages to the 'logger.log' file
+    Creates and returns a logger to write messages to the 'logger.log' file.
 
-    :return: message logger
+    :return: message logger.
     """
     logger = logging.getLogger("data_base")
     logger.setLevel(logging.INFO)
