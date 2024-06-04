@@ -1,0 +1,11 @@
+user_id,user_full_name,birth_day,user_accounts,account_type,account_number,account_currency,account_amount,account_status,bank_id,bank_name
+1,John Doe,27.02.1989,"123,897",credit,1568468,USD,2000,gold,1,Bank Aaa
+2,Jane Smith,12.12.1985,"014,023",debit,1568466,EUR,1000,platinum,2,Bank Bbb
+3,Alice Match,11.09.2001,"255,259",debit,3053656,GBP,7500,silver,3,Bank Ccc
+4,Bob Bobster,26.05.1997,"039,498",debit,1479523,USD,5600,platinum,4,Bank Ddd
+5,Sorra Allende,21.12.2004,"462,369",credit,2589466,GBP,9000,gold,5,Bank Eee
+6,Ceera Dert,07.07.1994,"258,147",debit,25478911,USD,900,platinum,6,Bank Fff
+7,Ace Evans,31.04.1995,"741,852",credit,3564125,EUR,3500,platinum,7,Bank Ggg
+8,Sor Bernghard,29.02.1996,"963,483",credit,36985422,USD,7800,gold,8,Bank Hhh
+9,Tom Soer,09.09.1999,"357,159",debit,1204470,GBP,4000,silver,9,Bank Iii
+10,Lana Rae,19.09.1990,"067,108",debit,000236,EUR,4200,gold,10,Bank Jjj
