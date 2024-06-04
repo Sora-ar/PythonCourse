@@ -44,34 +44,6 @@ def get_table_names(cursor):
     return [name[0] for name in table_names]
 
 
-# @conn_db
-# def add_data_into_db(cursor, table_name, data_list):
-#     """
-#     Adds data into the specified table of the database.
-#
-#     :param cursor: SQLite cursor object for executing SQL queries.
-#     :param table_name: Name of the table to which data will be added.
-#     :param data_list: List of dictionaries containing data to be added.
-#     :return: None
-#     """
-#     if isinstance(data_list, dict):
-#         data_list = [data_list]
-#
-#     for data in data_list:
-#         values = tuple(data[key] for key in data.keys())
-#         placeholders = ', '.join(['?' for _ in range(len(data))])
-#
-#         columns = ', '.join(data.keys())
-#         print(columns)
-#         query = f'INSERT INTO {table_name} ({columns}) VALUES ({placeholders})'
-#
-#         try:
-#             cursor.execute(query, values)
-#             logger.info(f'{table_name.capitalize()} information added successfully.')
-#         except sqlite3.Error as e:
-#             logger.error(f"Error adding {table_name} information: {e}")
-
-
 @conn_db
 def add_user_into_db(cursor, users):
     """
@@ -124,28 +96,6 @@ def add_account_into_db(cursor, accounts):
                                                         account['account_currency'], account['account_amount'],
                                                         account['account_status'], account['bank_id'],
                                                         account['user_id']))
-
-
-# @conn_db
-# def update_data(cursor, table_name, **kwargs):
-#     """
-#     Update data in the specified table of the database.
-#
-#     :param cursor: Database cursor.
-#     :param table_name: Name of the table to be updated.
-#     :param kwargs: Key-value pairs where keys represent column names and values represent new values.
-#     :return: None
-#     """
-#     try:
-#         columns = ', '.join([f"{column} = ?" for column in kwargs.keys()])
-#         values = tuple(kwargs.values())
-#         query = f"UPDATE {table_name} SET {columns} WHERE id=?"
-#
-#         cursor.execute(query, (*values, kwargs['id']))
-#
-#         logger.info(f'{table_name.capitalize()} information updated successfully.')
-#     except sqlite3.Error as e:
-#         logger.error(f"Error updating {table_name} information: {e}")
 
 
 @conn_db
